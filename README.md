@@ -44,23 +44,45 @@ pip install -r requirements.txt
 
 ## 🖥️ Sample Output
 
-Terminal output from running `python main.py`, which builds an owner with two pets (Luna, Milo)
-and three tasks, then generates a schedule across both pets with 45 available minutes:
+Terminal output from running `python main.py`, which builds an owner with two pets (Luna, Milo),
+adds tasks out of chronological order, and exercises sorting, filtering, recurring tasks, and
+conflict detection before generating a schedule:
 
 ```
+=== All tasks sorted by time ===
+  08:00 - Morning walk
+  08:00 - Feed Milo
+  12:00 - Brush fur
+  18:00 - Dinner
+
+=== Tasks filtered to Luna only ===
+  Dinner (Luna)
+  Morning walk (Luna)
+
+=== Conflict check ===
+  WARNING: Conflict at 2026-07-02 08:00:00: 'Morning walk' (Luna), 'Feed Milo' (Milo) are all scheduled at the same time.
+
+=== Completing a recurring task ===
+  Luna now has 3 tasks (original + auto-generated next occurrence).
+  - Dinner due 2026-07-02 18:00:00 (completed: False)
+  - Morning walk due 2026-07-02 08:00:00 (completed: True)
+  - Morning walk due 2026-07-03 08:00:00 (completed: False)
+
 Today's Schedule (2026-07-02):
 
 Scheduled:
-  - Morning walk (30 min) [priority: high]
+  - Feed Milo (10 min) [priority: high]
   - Dinner (15 min) [priority: high]
-
-Skipped:
   - Brush fur (20 min) [priority: low]
 
+Skipped:
+  - Morning walk (30 min) [priority: high]
+
 Why this plan:
-Scheduled 'Morning walk' for Luna (priority: high, 30 min).
+Scheduled 'Feed Milo' for Milo (priority: high, 10 min).
 Scheduled 'Dinner' for Luna (priority: high, 15 min).
-Skipped 'Brush fur' for Milo - not enough time remaining (20 min needed).
+Scheduled 'Brush fur' for Milo (priority: low, 20 min).
+Skipped 'Morning walk' for Luna - not enough time remaining (30 min needed).
 ```
 
 ## 🧪 Testing PawPal+
@@ -76,27 +98,37 @@ pytest --cov
 Sample test output:
 
 ```
-collected 7 items
+collected 16 items
 
-test_pawpal_system.py::test_high_priority_task_scheduled_before_low_priority PASSED [ 14%]
-test_pawpal_system.py::test_task_skipped_when_it_does_not_fit_in_available_time PASSED [ 28%]
-test_pawpal_system.py::test_completed_tasks_are_excluded_from_the_plan PASSED [ 42%]
-test_pawpal_system.py::test_empty_task_list_produces_empty_plan PASSED   [ 57%]
-test_pawpal_system.py::test_pet_add_and_remove_task PASSED               [ 71%]
-test_pawpal_system.py::test_owner_add_and_remove_pet PASSED              [ 85%]
-test_pawpal_system.py::test_mark_complete_sets_is_completed PASSED       [100%]
+test_pawpal_system.py::test_high_priority_task_scheduled_before_low_priority PASSED [  6%]
+test_pawpal_system.py::test_task_skipped_when_it_does_not_fit_in_available_time PASSED [ 12%]
+test_pawpal_system.py::test_completed_tasks_are_excluded_from_the_plan PASSED [ 18%]
+test_pawpal_system.py::test_empty_task_list_produces_empty_plan PASSED   [ 25%]
+test_pawpal_system.py::test_pet_add_and_remove_task PASSED               [ 31%]
+test_pawpal_system.py::test_owner_add_and_remove_pet PASSED              [ 37%]
+test_pawpal_system.py::test_mark_complete_sets_is_completed PASSED       [ 43%]
+test_pawpal_system.py::test_sort_by_time_orders_tasks_earliest_first PASSED [ 50%]
+test_pawpal_system.py::test_filter_tasks_by_pet_name PASSED              [ 56%]
+test_pawpal_system.py::test_filter_tasks_by_completion_status PASSED     [ 62%]
+test_pawpal_system.py::test_mark_task_complete_creates_next_occurrence_for_daily_task PASSED [ 68%]
+test_pawpal_system.py::test_mark_task_complete_does_not_recur_for_one_time_task PASSED [ 75%]
+test_pawpal_system.py::test_detect_conflicts_flags_tasks_at_the_same_time PASSED [ 81%]
+test_pawpal_system.py::test_detect_conflicts_returns_empty_when_no_overlap PASSED [ 87%]
+tests/test_pawpal.py::test_mark_complete_changes_task_status PASSED      [ 93%]
+tests/test_pawpal.py::test_adding_task_increases_pet_task_count PASSED   [100%]
 
-============================== 7 passed in 0.11s ==============================
+============================== 16 passed in 0.08s ==============================
 ```
 
 ## 📐 Smarter Scheduling
 
 | Feature | Method(s) | Notes |
 |---------|-----------|-------|
-| Task sorting | `Scheduler.generate_plan()` | Sorts by priority (high → medium → low), then by `due_time` as a tiebreaker |
-| Filtering | `Scheduler.generate_plan()` | Greedily fits tasks into `available_mins`; anything that doesn't fit is skipped, not scheduled |
-| Conflict handling | *(not implemented)* | Not needed yet since tasks don't have fixed start times, only a duration and a due time |
-| Recurring tasks | *(not implemented)* | Stretch feature; `Task.frequency` would need to be added to support "Daily"/"Weekly" regeneration |
+| Task sorting | `Scheduler.sort_by_time()` | Sorts a list of tasks earliest-`due_time`-first |
+| Priority-aware scheduling | `Scheduler.generate_plan()`, `Scheduler.generate_plan_for_owner()` | Sorts by priority (high → medium → low), then `due_time` as a tiebreaker, then greedily fits tasks into `available_mins` |
+| Filtering | `Scheduler.filter_tasks()` | Filters `(pet, task)` pairs by pet name and/or completion status |
+| Conflict detection | `Scheduler.detect_conflicts()` | Groups all of an owner's tasks by exact `due_time`; any group with 2+ tasks produces a warning string rather than raising an error |
+| Recurring tasks | `Task.next_occurrence()`, `Pet.mark_task_complete()` | Marking a `"daily"`/`"weekly"` task complete automatically appends its next occurrence (`due_time + timedelta`) to the pet's task list |
 
 ## 📸 Demo Walkthrough
 
