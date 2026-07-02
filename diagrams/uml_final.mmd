@@ -1,0 +1,61 @@
+classDiagram
+    %% PawPal+ final domain model, reflecting pawpal_system.py after Phases 1-6.
+    %% Owner has Pets; Pets have Tasks; Scheduler retrieves, sorts, filters, and
+    %% schedules tasks across an owner's pets, and can flag same-time conflicts.
+    %% Tasks that are "daily"/"weekly" regenerate their next occurrence when completed.
+
+    class Task {
+        +int id
+        +str description
+        +int duration_mins
+        +str priority
+        +datetime due_time
+        +bool is_completed
+        +str frequency
+        +mark_complete() None
+        +next_occurrence(new_id: int) Task | None
+    }
+
+    class Pet {
+        +int id
+        +str name
+        +str species
+        +int age
+        +List~Task~ tasks
+        +add_task(task: Task) None
+        +remove_task(task_id: int) None
+        +mark_task_complete(task_id: int) None
+    }
+
+    class Owner {
+        +str name
+        +List~str~ preferences
+        +List~Pet~ pets
+        +add_pet(pet: Pet) None
+        +remove_pet(pet_id: int) None
+        +get_all_tasks() List~tuple~
+    }
+
+    class DailyPlan {
+        +date date
+        +List~Task~ scheduled_tasks
+        +List~Task~ skipped_tasks
+        +str reasoning
+        +explain() str
+    }
+
+    class Scheduler {
+        +generate_plan(pet: Pet, available_mins: int) DailyPlan
+        +generate_plan_for_owner(owner: Owner, available_mins: int) DailyPlan
+        +sort_by_time(tasks: List~Task~) List~Task~
+        +filter_tasks(pairs: List~tuple~, pet_name: str, is_completed: bool) List~tuple~
+        +detect_conflicts(owner: Owner) List~str~
+    }
+
+    Owner "1" --> "many" Pet : owns
+    Pet "1" --> "many" Task : has
+    Scheduler ..> Owner : reads tasks from (get_all_tasks)
+    Scheduler ..> Pet : reads tasks from (single-pet plan)
+    Scheduler --> DailyPlan : generates
+    DailyPlan "1" --> "many" Task : schedules
+    Task ..> Task : next_occurrence creates a new instance

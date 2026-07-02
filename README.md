@@ -42,6 +42,15 @@ pip install -r requirements.txt
 6. Connect your logic to the Streamlit UI in `app.py`.
 7. Refine UML so it matches what you actually built.
 
+## ✨ Features
+
+- **Multi-pet ownership** — an `Owner` can hold any number of `Pet`s, each with its own task list.
+- **Priority-aware scheduling** — tasks are scheduled by priority (high → medium → low) and greedily fit into the time available, with skipped tasks and reasoning shown.
+- **Sorting by time** — view all of a pet owner's tasks in chronological order regardless of which pet or when they were added.
+- **Filtering** — narrow the task list down by pet name and/or completion status.
+- **Daily recurrence** — marking a `"daily"` or `"weekly"` task complete automatically schedules its next occurrence.
+- **Conflict warnings** — tasks scheduled at the exact same time (across any pets) are flagged with a warning instead of silently colliding.
+
 ## 🖥️ Sample Output
 
 Terminal output from running `python main.py`, which builds an owner with two pets (Luna, Milo),
@@ -143,12 +152,75 @@ tests/test_pawpal.py::test_detect_conflicts_on_owner_with_no_pets_returns_empty 
 
 ## 📸 Demo Walkthrough
 
-Describe your app in numbered steps so a reader can follow along without watching a video:
+### Main UI features and actions
+
+The Streamlit UI (`app.py`) lets a user:
+- Set the owner's name.
+- Add any number of pets (name, species, age).
+- Add tasks to a specific pet, including a frequency (`once`/`daily`/`weekly`).
+- View all tasks across every pet, sorted by time, filterable by pet and by completion status.
+- Mark a task complete — if it's recurring, the next occurrence is scheduled automatically.
+- See conflict warnings if two tasks land on the exact same time.
+- Generate a daily schedule across all pets given an available time budget.
+
+### Example workflow
 
 1. Run `streamlit run app.py` and open the app in your browser.
-2. Enter an owner name, pet name, and species in the "Quick Demo Inputs" section.
-3. Add one or more tasks using the task title, duration, and priority fields, clicking "Add task" for each one.
-4. Set "Available time today (minutes)" to however much time you have.
-5. Click "Generate schedule" to see which tasks were scheduled, which were skipped, and the reasoning behind each decision.
+2. Enter the owner's name (e.g., "Jordan").
+3. Add a pet (e.g., "Luna", dog, age 4) using the "Add a Pet" form.
+4. Add a task for Luna (e.g., "Morning walk", 30 min, high priority, daily) using the "Add a Task" form.
+5. Add a second pet ("Milo") and a task for Milo at the same time as Luna's task — the "Today's Tasks" section will show a conflict warning for it.
+6. Use the pet/status filters to narrow the task list, and note that it's sorted chronologically.
+7. Mark Luna's daily task complete — a new occurrence for the next day appears automatically in the task list.
+8. Set "Available time today" and click "Generate schedule" to see which tasks were scheduled vs. skipped, and why.
+
+### Key Scheduler behaviors shown
+
+- **Sorting** (`Scheduler.sort_by_time()`): the "Today's Tasks" table is always shown earliest-time-first.
+- **Filtering** (`Scheduler.filter_tasks()`): the pet/status dropdowns narrow which tasks are displayed.
+- **Conflict warnings** (`Scheduler.detect_conflicts()`): shown as `st.warning` banners above the schedule builder.
+- **Recurring tasks** (`Pet.mark_task_complete()` / `Task.next_occurrence()`): completing a daily/weekly task via the UI immediately adds its next occurrence to the task list.
+- **Priority-aware scheduling** (`Scheduler.generate_plan_for_owner()`): the generated schedule respects priority and time budget, with reasoning for every scheduled/skipped task.
+
+### Sample CLI output
+
+Running `python main.py` exercises the same Scheduler logic from the terminal, without the UI:
+
+```
+=== All tasks sorted by time ===
+  08:00 - Morning walk
+  08:00 - Feed Milo
+  12:00 - Brush fur
+  18:00 - Dinner
+
+=== Tasks filtered to Luna only ===
+  Dinner (Luna)
+  Morning walk (Luna)
+
+=== Conflict check ===
+  WARNING: Conflict at 2026-07-02 08:00:00: 'Morning walk' (Luna), 'Feed Milo' (Milo) are all scheduled at the same time.
+
+=== Completing a recurring task ===
+  Luna now has 3 tasks (original + auto-generated next occurrence).
+  - Dinner due 2026-07-02 18:00:00 (completed: False)
+  - Morning walk due 2026-07-02 08:00:00 (completed: True)
+  - Morning walk due 2026-07-03 08:00:00 (completed: False)
+
+Today's Schedule (2026-07-02):
+
+Scheduled:
+  - Feed Milo (10 min) [priority: high]
+  - Dinner (15 min) [priority: high]
+  - Brush fur (20 min) [priority: low]
+
+Skipped:
+  - Morning walk (30 min) [priority: high]
+
+Why this plan:
+Scheduled 'Feed Milo' for Milo (priority: high, 10 min).
+Scheduled 'Dinner' for Luna (priority: high, 15 min).
+Scheduled 'Brush fur' for Milo (priority: low, 20 min).
+Skipped 'Morning walk' for Luna - not enough time remaining (30 min needed).
+```
 
 **Screenshot or video** *(optional)*: <!-- Insert a screenshot or link to a demo video here -->

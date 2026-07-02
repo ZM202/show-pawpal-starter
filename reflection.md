@@ -60,6 +60,16 @@ The most helpful prompts were the ones that asked the assistant to review my des
 
 When reviewing the generated skeleton, the AI pointed out that `Scheduler` took `available_mins` in both `__init__` and `generate_plan()`, and asked me to decide which one to keep rather than picking for me. I evaluated the tradeoff myself: a constructor-only value would assume a fixed daily time budget, while a method-only value allows it to vary per call. Since a pet owner's available time realistically changes day to day, I chose the stateless (method-parameter) version instead of just accepting whichever option was listed first. I verified the change by checking that it was applied consistently in both `pawpal_system.py` and `diagrams/uml.mmd`.
 
+**c. AI strategy**
+
+The most effective AI assistant feature for this project was having it flag inconsistencies and ask me to make the call, rather than just generating a "finished" answer — the `Scheduler` constructor/method duplication is the clearest example, but the same pattern showed up again when I decided how `Scheduler.detect_conflicts()` should define a "conflict" (exact time match vs. true overlap). In both cases, the AI proposed the simplest version and explicitly documented it as a tradeoff instead of silently picking one, which let me decide on purpose rather than inherit a hidden assumption.
+
+The concrete example of a suggestion I modified is that same `Scheduler` constructor issue from Section 1b/3b: the AI's skeleton had accepted an ambiguous design (time budget settable in two places) that would have caused confusing bugs later (e.g., a stale `available_mins` set once at construction silently overriding what I passed to `generate_plan()`). I rejected the ambiguity and forced a single source of truth.
+
+Using a fresh conversation for architecturally distinct phases (design/UML, then testing, then UI polish) helped me stay organized because each conversation only had the context relevant to that phase — when I asked for a testing plan, I wasn't dragging along the entire history of scheduling-logic debates, so the AI's answers stayed focused and I could evaluate them against a smaller, clearer set of assumptions.
+
+The biggest takeaway about being the "lead architect" is that the AI is very good at generating a technically valid design quickly, but it defaults to the simplest version of any ambiguous decision unless asked to flag it — my job was to keep questioning those defaults (is a `DailyPlan` class worth it? should the Scheduler be stateless? is exact-time conflict detection good enough?) rather than accepting the first working version. The AI is a fast implementer of decisions; deciding what tradeoffs are acceptable for *this* scenario stayed my responsibility throughout.
+
 ---
 
 ## 4. Testing and Verification
