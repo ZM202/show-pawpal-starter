@@ -89,35 +89,46 @@ Skipped 'Morning walk' for Luna - not enough time remaining (30 min needed).
 
 ```bash
 # Run the full test suite:
-pytest
+python -m pytest
 
 # Run with coverage:
 pytest --cov
 ```
 
+`tests/test_pawpal.py` covers both happy paths and edge cases across the core system:
+- Basic CRUD: adding/removing tasks and pets, marking a task complete
+- Priority-based scheduling: high-priority tasks scheduled first, tasks that don't fit are skipped, completed tasks excluded, an empty task list produces an empty plan
+- **Sorting**: tasks are returned in chronological order (`sort_by_time`), including on an empty list
+- **Filtering**: tasks filtered by pet name and by completion status
+- **Recurrence**: marking a `"daily"` task complete automatically creates the next day's occurrence; a one-time task does not recur
+- **Conflict detection**: two tasks at the exact same time are flagged with a warning; no false positives when times don't overlap; no crash on an owner with no pets
+
+**Confidence Level: ⭐⭐⭐⭐☆ (4/5)** — All 17 tests pass and cover the behaviors I consider most important. I'm not at 5/5 because, per `reflection.md` 4b/2b, conflict detection only checks exact time matches (not overlapping durations), and untested edge cases remain (duplicate priority values, zero-duration tasks, unrecognized priority strings).
+
 Sample test output:
 
 ```
-collected 16 items
+collected 17 items
 
-test_pawpal_system.py::test_high_priority_task_scheduled_before_low_priority PASSED [  6%]
-test_pawpal_system.py::test_task_skipped_when_it_does_not_fit_in_available_time PASSED [ 12%]
-test_pawpal_system.py::test_completed_tasks_are_excluded_from_the_plan PASSED [ 18%]
-test_pawpal_system.py::test_empty_task_list_produces_empty_plan PASSED   [ 25%]
-test_pawpal_system.py::test_pet_add_and_remove_task PASSED               [ 31%]
-test_pawpal_system.py::test_owner_add_and_remove_pet PASSED              [ 37%]
-test_pawpal_system.py::test_mark_complete_sets_is_completed PASSED       [ 43%]
-test_pawpal_system.py::test_sort_by_time_orders_tasks_earliest_first PASSED [ 50%]
-test_pawpal_system.py::test_filter_tasks_by_pet_name PASSED              [ 56%]
-test_pawpal_system.py::test_filter_tasks_by_completion_status PASSED     [ 62%]
-test_pawpal_system.py::test_mark_task_complete_creates_next_occurrence_for_daily_task PASSED [ 68%]
-test_pawpal_system.py::test_mark_task_complete_does_not_recur_for_one_time_task PASSED [ 75%]
-test_pawpal_system.py::test_detect_conflicts_flags_tasks_at_the_same_time PASSED [ 81%]
-test_pawpal_system.py::test_detect_conflicts_returns_empty_when_no_overlap PASSED [ 87%]
-tests/test_pawpal.py::test_mark_complete_changes_task_status PASSED      [ 93%]
-tests/test_pawpal.py::test_adding_task_increases_pet_task_count PASSED   [100%]
+tests/test_pawpal.py::test_mark_complete_changes_task_status PASSED      [  5%]
+tests/test_pawpal.py::test_adding_task_increases_pet_task_count PASSED   [ 11%]
+tests/test_pawpal.py::test_high_priority_task_scheduled_before_low_priority PASSED [ 17%]
+tests/test_pawpal.py::test_task_skipped_when_it_does_not_fit_in_available_time PASSED [ 23%]
+tests/test_pawpal.py::test_completed_tasks_are_excluded_from_the_plan PASSED [ 29%]
+tests/test_pawpal.py::test_empty_task_list_produces_empty_plan PASSED    [ 35%]
+tests/test_pawpal.py::test_pet_add_and_remove_task PASSED                [ 41%]
+tests/test_pawpal.py::test_owner_add_and_remove_pet PASSED               [ 47%]
+tests/test_pawpal.py::test_sort_by_time_orders_tasks_chronologically PASSED [ 52%]
+tests/test_pawpal.py::test_sort_by_time_on_empty_list_returns_empty_list PASSED [ 58%]
+tests/test_pawpal.py::test_filter_tasks_by_pet_name PASSED               [ 64%]
+tests/test_pawpal.py::test_filter_tasks_by_completion_status PASSED      [ 70%]
+tests/test_pawpal.py::test_mark_task_complete_creates_next_occurrence_for_daily_task PASSED [ 76%]
+tests/test_pawpal.py::test_mark_task_complete_does_not_recur_for_one_time_task PASSED [ 82%]
+tests/test_pawpal.py::test_detect_conflicts_flags_tasks_at_the_same_time PASSED [ 88%]
+tests/test_pawpal.py::test_detect_conflicts_returns_empty_when_no_overlap PASSED [ 94%]
+tests/test_pawpal.py::test_detect_conflicts_on_owner_with_no_pets_returns_empty PASSED [100%]
 
-============================== 16 passed in 0.08s ==============================
+============================== 17 passed in 0.47s ==============================
 ```
 
 ## 📐 Smarter Scheduling
