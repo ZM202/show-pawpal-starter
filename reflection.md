@@ -84,12 +84,12 @@ I'm fairly confident the current logic is correct for the cases I tested — all
 
 **a. What went well**
 
-- What part of this project are you most satisfied with?
+I'm most satisfied with how closely the final `Scheduler.generate_plan()` logic matches what was actually drafted in the UML — going through Step 1 (core actions) and Step 2 (building blocks) before writing any code meant the class design barely needed to change once I started implementing. The one change that did happen (making `Scheduler` stateless) was a small, well-reasoned tweak rather than a rework.
 
 **b. What you would improve**
 
-- If you had another iteration, what would you improve or redesign?
+If I had another iteration, I'd address the gaps identified in Section 4b: validating `priority` against a fixed set of allowed values instead of accepting any string, deciding explicitly how same-priority/same-due-time ties should break, and implementing the recurring-task feature (`Task.frequency`) that's currently just a placeholder in the "Smarter Scheduling" table. I'd also make the greedy scheduling algorithm smarter — right now a single large high-priority task can crowd out several smaller tasks that would have fit in the same time, which isn't necessarily the best outcome for the owner.
 
 **c. Key takeaway**
 
-- What is one important thing you learned about designing systems or working with AI on this project?
+Doing the UML design and brainstorming (Steps 1-2) before writing any code made the implementation phase noticeably smoother — most of the "hard thinking" (what classes exist, what they're responsible for, how they relate) was already resolved by the time I wrote `pawpal_system.py`, so implementation was mostly translating a decision I'd already made rather than making new ones under pressure. On the AI collaboration side, the most useful moments weren't when the assistant just generated code, but when it flagged a specific inconsistency (like the duplicate `available_mins` parameter) and asked me to make the judgment call instead of deciding for me.
