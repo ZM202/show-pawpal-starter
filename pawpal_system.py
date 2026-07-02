@@ -85,7 +85,7 @@ class Scheduler:
             for t in scheduled
         ]
         reasoning_lines += [
-            f"Skipped '{t.description}' — not enough time remaining ({t.duration_mins} min needed)."
+            f"Skipped '{t.description}' - not enough time remaining ({t.duration_mins} min needed)."
             for t in skipped
         ]
         reasoning = "\n".join(reasoning_lines) if reasoning_lines else "No pending tasks for this pet."

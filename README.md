@@ -44,14 +44,18 @@ pip install -r requirements.txt
 
 ## 🖥️ Sample Output
 
-Paste a sample of your app's CLI or Streamlit output here so a reader can see what a generated plan looks like:
+Given a pet named Biscuit with three tasks (Morning walk - 30 min - high, Feeding - 10 min - high,
+Brush fur - 15 min - low) and 45 available minutes, `Scheduler.generate_plan()` produces:
 
 ```
-# e.g.:
-# Daily plan for Biscuit (Golden Retriever):
-#   08:00 — Morning walk (30 min) [priority: high]
-#   09:00 — Feeding (10 min) [priority: high]
-#   ...
+Scheduled:
+  Morning walk (30 min) [priority: high]
+  Feeding (10 min) [priority: high]
+
+Why this plan:
+Scheduled 'Morning walk' (priority: high, 30 min).
+Scheduled 'Feeding' (priority: high, 10 min).
+Skipped 'Brush fur' - not enough time remaining (15 min needed).
 ```
 
 ## 🧪 Testing PawPal+
@@ -67,28 +71,36 @@ pytest --cov
 Sample test output:
 
 ```
-# Paste your pytest output here
+collected 7 items
+
+test_pawpal_system.py::test_high_priority_task_scheduled_before_low_priority PASSED [ 14%]
+test_pawpal_system.py::test_task_skipped_when_it_does_not_fit_in_available_time PASSED [ 28%]
+test_pawpal_system.py::test_completed_tasks_are_excluded_from_the_plan PASSED [ 42%]
+test_pawpal_system.py::test_empty_task_list_produces_empty_plan PASSED   [ 57%]
+test_pawpal_system.py::test_pet_add_and_remove_task PASSED               [ 71%]
+test_pawpal_system.py::test_owner_add_and_remove_pet PASSED              [ 85%]
+test_pawpal_system.py::test_mark_complete_sets_is_completed PASSED       [100%]
+
+============================== 7 passed in 0.11s ==============================
 ```
 
 ## 📐 Smarter Scheduling
 
-> Fill in once you've implemented scheduling logic.
-
 | Feature | Method(s) | Notes |
 |---------|-----------|-------|
-| Task sorting | | e.g., by priority, duration |
-| Filtering | | e.g., skip tasks if time runs out |
-| Conflict handling | | e.g., overlapping time slots |
-| Recurring tasks | | e.g., daily vs. weekly |
+| Task sorting | `Scheduler.generate_plan()` | Sorts by priority (high → medium → low), then by `due_time` as a tiebreaker |
+| Filtering | `Scheduler.generate_plan()` | Greedily fits tasks into `available_mins`; anything that doesn't fit is skipped, not scheduled |
+| Conflict handling | *(not implemented)* | Not needed yet since tasks don't have fixed start times, only a duration and a due time |
+| Recurring tasks | *(not implemented)* | Stretch feature; `Task.frequency` would need to be added to support "Daily"/"Weekly" regeneration |
 
 ## 📸 Demo Walkthrough
 
 Describe your app in numbered steps so a reader can follow along without watching a video:
 
-1. <!-- Describe this step -->
-2. <!-- Describe this step -->
-3. <!-- Describe this step -->
-4. <!-- Describe this step -->
-5. <!-- Add more steps as needed -->
+1. Run `streamlit run app.py` and open the app in your browser.
+2. Enter an owner name, pet name, and species in the "Quick Demo Inputs" section.
+3. Add one or more tasks using the task title, duration, and priority fields, clicking "Add task" for each one.
+4. Set "Available time today (minutes)" to however much time you have.
+5. Click "Generate schedule" to see which tasks were scheduled, which were skipped, and the reasoning behind each decision.
 
 **Screenshot or video** *(optional)*: <!-- Insert a screenshot or link to a demo video here -->
