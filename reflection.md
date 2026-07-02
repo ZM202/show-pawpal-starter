@@ -32,13 +32,11 @@ Yes. My AI assistant flagged that `Scheduler` originally accepted `available_min
 
 **a. Constraints and priorities**
 
-- What constraints does your scheduler consider (for example: time, priority, preferences)?
-- How did you decide which constraints mattered most?
+The scheduler considers two constraints: available time (`available_mins`) and task priority (`high`/`medium`/`low`). Already-completed tasks are filtered out before scheduling since they don't need to be planned again. Tasks are sorted by priority first, then by `due_time` as a tiebreaker when two tasks share the same priority. Priority mattered most because the scenario is about a busy owner who needs the most important care tasks (e.g., feeding, meds) handled first if time is tight — time available is the hard limit that ultimately decides how many of those prioritized tasks actually fit.
 
 **b. Tradeoffs**
 
-- Describe one tradeoff your scheduler makes.
-- Why is that tradeoff reasonable for this scenario?
+The scheduler is greedy: it walks through tasks in priority order and schedules the first ones that fit in the remaining time, skipping any task that doesn't fit — it never looks ahead to see if skipping a task now would let more tasks fit later. For example, given 40 minutes, a high-priority 30-minute task is scheduled first, which then means several 15-20 minute lower-priority tasks are all skipped, even though two of them might have fit together in the leftover 10 minutes if the algorithm optimized for total time used instead of strict priority order. This tradeoff is reasonable for this scenario because respecting priority (e.g., always doing feeding/meds before optional grooming) is more important to a pet owner than maximizing the raw number of tasks completed — a simpler, predictable "priority always wins" rule is easier to trust and explain than an optimizer that might reorder things unexpectedly.
 
 ---
 
@@ -66,13 +64,19 @@ When reviewing the generated skeleton, the AI pointed out that `Scheduler` took 
 
 **a. What you tested**
 
-- What behaviors did you test?
-- Why were these tests important?
+In `test_pawpal_system.py` I wrote 7 tests covering:
+
+- A high-priority task gets scheduled before a low-priority one when there isn't enough time for both.
+- A task that's longer than the available time gets skipped rather than scheduled.
+- Already-completed tasks are excluded from the plan entirely.
+- An empty task list produces an empty plan with a clear "no tasks due" message.
+- Basic CRUD behavior: adding/removing a task from a `Pet`, adding/removing a `Pet` from an `Owner`, and marking a `Task` complete.
+
+These were important because the scheduling logic (priority ordering + time-budget fitting) is the core value of the app — if it silently scheduled things in the wrong order or double-counted completed tasks, the whole "trustworthy daily plan" idea would fall apart. The CRUD tests matter less for correctness risk but confirm the basic data operations the UI will depend on actually work.
 
 **b. Confidence**
 
-- How confident are you that your scheduler works correctly?
-- What edge cases would you test next if you had more time?
+I'm fairly confident the current logic is correct for the cases I tested — all 7 tests pass. I'm less confident about edge cases I haven't tested yet, such as: two tasks with the exact same priority and due time (is the tiebreak stable/deterministic?), a task with `duration_mins` of exactly 0, or tasks with an unrecognized priority value (e.g., a typo like `"med"` instead of `"medium"`) — right now those just sort last via a fallback, which might not be the desired behavior. If I had more time I'd add tests for those cases and for the recurring-task feature mentioned in the README's "Smarter Scheduling" section, which isn't implemented yet.
 
 ---
 
