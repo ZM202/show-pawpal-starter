@@ -61,8 +61,5 @@ class DailyPlan:
 
 
 class Scheduler:
-    def __init__(self, available_mins: int):
-        self.available_mins = available_mins
-
     def generate_plan(self, pet: Pet, available_mins: int) -> DailyPlan:
         raise NotImplementedError

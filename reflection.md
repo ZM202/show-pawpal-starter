@@ -24,8 +24,7 @@ The relationships are straightforward one-to-many chains: an `Owner` has many `P
 
 **b. Design changes**
 
-- Did your design change during implementation?
-- If yes, describe at least one change and why you made it.
+Yes. My AI assistant flagged that `Scheduler` originally accepted `available_mins` in both its constructor and in `generate_plan()`, which was redundant and left it ambiguous whether the time budget was fixed per-Scheduler or per-call. I decided to make `Scheduler` stateless and keep `available_mins` only as a parameter to `generate_plan()`, since the time a pet owner has available can reasonably change from day to day — a fixed value set once in the constructor wouldn't reflect that. I updated both `pawpal_system.py` and `diagrams/uml.mmd` to drop the constructor parameter.
 
 ---
 
@@ -47,13 +46,19 @@ The relationships are straightforward one-to-many chains: an `Owner` has many `P
 
 **a. How you used AI**
 
-- How did you use AI tools during this project (for example: design brainstorming, debugging, refactoring)?
-- What kinds of prompts or questions were most helpful?
+I used my AI coding assistant throughout the design phase of this project, mainly for:
+
+- **Design brainstorming**: identifying the three core user actions (add/edit a task, generate a daily plan, view today's plan with reasoning) from the scenario in README.md before writing any code.
+- **Class brainstorming**: working through which objects the system needed (Owner, Pet, Task, Scheduler, DailyPlan), including deciding whether an `Owner` class and a `DailyPlan` class were worth the extra complexity versus a simpler design.
+- **Drafting the UML diagram**: turning the brainstormed classes into a Mermaid `classDiagram` (`diagrams/uml.mmd`), including attributes, method signatures, and relationships between classes.
+- **Generating the skeleton**: converting the UML into `pawpal_system.py` — dataclasses for `Task`, `Pet`, `Owner`, and `DailyPlan`, plus a plain `Scheduler` class, all with empty/stubbed methods.
+- **Reviewing the skeleton for gaps**: asking the assistant to look over `pawpal_system.py` for missing relationships or inconsistencies before writing real logic.
+
+The most helpful prompts were the ones that asked the assistant to review my design and point out inconsistencies or missing pieces, rather than just generate a "final" answer to accept as-is.
 
 **b. Judgment and verification**
 
-- Describe one moment where you did not accept an AI suggestion as-is.
-- How did you evaluate or verify what the AI suggested?
+When reviewing the generated skeleton, the AI pointed out that `Scheduler` took `available_mins` in both `__init__` and `generate_plan()`, and asked me to decide which one to keep rather than picking for me. I evaluated the tradeoff myself: a constructor-only value would assume a fixed daily time budget, while a method-only value allows it to vary per call. Since a pet owner's available time realistically changes day to day, I chose the stateless (method-parameter) version instead of just accepting whichever option was listed first. I verified the change by checking that it was applied consistently in both `pawpal_system.py` and `diagrams/uml.mmd`.
 
 ---
 
