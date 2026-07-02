@@ -44,18 +44,23 @@ pip install -r requirements.txt
 
 ## 🖥️ Sample Output
 
-Given a pet named Biscuit with three tasks (Morning walk - 30 min - high, Feeding - 10 min - high,
-Brush fur - 15 min - low) and 45 available minutes, `Scheduler.generate_plan()` produces:
+Terminal output from running `python main.py`, which builds an owner with two pets (Luna, Milo)
+and three tasks, then generates a schedule across both pets with 45 available minutes:
 
 ```
+Today's Schedule (2026-07-02):
+
 Scheduled:
-  Morning walk (30 min) [priority: high]
-  Feeding (10 min) [priority: high]
+  - Morning walk (30 min) [priority: high]
+  - Dinner (15 min) [priority: high]
+
+Skipped:
+  - Brush fur (20 min) [priority: low]
 
 Why this plan:
-Scheduled 'Morning walk' (priority: high, 30 min).
-Scheduled 'Feeding' (priority: high, 10 min).
-Skipped 'Brush fur' - not enough time remaining (15 min needed).
+Scheduled 'Morning walk' for Luna (priority: high, 30 min).
+Scheduled 'Dinner' for Luna (priority: high, 15 min).
+Skipped 'Brush fur' for Milo - not enough time remaining (20 min needed).
 ```
 
 ## 🧪 Testing PawPal+
