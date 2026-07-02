@@ -1,4 +1,8 @@
+from datetime import datetime
+
 import streamlit as st
+
+from pawpal_system import Pet, Scheduler, Task
 
 st.set_page_config(page_title="PawPal+", page_icon="🐾", layout="centered")
 
@@ -71,18 +75,45 @@ else:
 st.divider()
 
 st.subheader("Build Schedule")
-st.caption("This button should call your scheduling logic once you implement it.")
+available_mins = st.number_input(
+    "Available time today (minutes)", min_value=1, max_value=720, value=60
+)
 
 if st.button("Generate schedule"):
-    st.warning(
-        "Not implemented yet. Next step: create your scheduling logic (classes/functions) and call it here."
-    )
-    st.markdown(
-        """
-Suggested approach:
-1. Design your UML (draft).
-2. Create class stubs (no logic).
-3. Implement scheduling behavior.
-4. Connect your scheduler here and display results.
-"""
-    )
+    if not st.session_state.tasks:
+        st.info("Add at least one task above before generating a schedule.")
+    else:
+        pet = Pet(id=1, name=pet_name, species=species, age=0)
+        for i, t in enumerate(st.session_state.tasks):
+            pet.add_task(
+                Task(
+                    id=i,
+                    description=t["title"],
+                    duration_mins=t["duration_minutes"],
+                    priority=t["priority"],
+                    due_time=datetime.now(),
+                )
+            )
+
+        plan = Scheduler().generate_plan(pet, available_mins=int(available_mins))
+
+        st.markdown(f"### Today's plan for {pet_name}")
+        if plan.scheduled_tasks:
+            st.write("**Scheduled:**")
+            st.table(
+                [
+                    {"Task": t.description, "Minutes": t.duration_mins, "Priority": t.priority}
+                    for t in plan.scheduled_tasks
+                ]
+            )
+        if plan.skipped_tasks:
+            st.write("**Skipped:**")
+            st.table(
+                [
+                    {"Task": t.description, "Minutes": t.duration_mins, "Priority": t.priority}
+                    for t in plan.skipped_tasks
+                ]
+            )
+
+        st.write("**Why this plan:**")
+        st.text(plan.explain())
