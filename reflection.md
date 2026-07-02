@@ -2,10 +2,25 @@
 
 ## 1. System Design
 
+**Core user actions**
+
+A user of PawPal+ should be able to:
+
+1. Add or edit a pet care task, specifying at least its duration and priority.
+2. Generate a daily plan for a pet based on the tasks that are due and the time available.
+3. View today's plan along with an explanation of why each task was scheduled, skipped, or ordered the way it was.
+
 **a. Initial design**
 
-- Briefly describe your initial UML design.
-- What classes did you include, and what responsibilities did you assign to each?
+My initial UML design has five classes:
+
+- **Owner** — represents the pet owner. Holds their name and preferences, and owns a list of `Pet`s. Responsible for adding/removing pets.
+- **Pet** — represents an individual animal. Holds identifying info (name, species, age) and its own list of `Task`s. Responsible for adding/removing tasks for itself.
+- **Task** — represents a single care item (e.g., walk, feeding, meds). Holds description, duration, priority, due time, and completion status. Responsible for marking itself complete.
+- **Scheduler** — the planning engine. Takes a `Pet` and an available time budget, and is responsible for deciding which tasks fit and producing a `DailyPlan`.
+- **DailyPlan** — represents the output of scheduling for a given day. Holds the ordered list of scheduled tasks, any tasks that didn't fit (skipped), and a reasoning string. Responsible for explaining why the plan looks the way it does.
+
+The relationships are straightforward one-to-many chains: an `Owner` has many `Pet`s, a `Pet` has many `Task`s, and the `Scheduler` reads a `Pet`'s tasks to generate a `DailyPlan`, which in turn references the `Task`s it scheduled.  Kept the design intentionally simple, no inheritance or complex patterns, since the core problem (matching tasks to available time) doesn't need it.
 
 **b. Design changes**
 

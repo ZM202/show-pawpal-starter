@@ -1,15 +1,50 @@
 classDiagram
-    %% Replace the placeholders below with your actual classes, attributes, methods, and relationships.
-    %% Keep this file updated so it matches your final implementation.
+    %% PawPal+ domain model
+    %% Owner has Pets; Pets have Tasks; Scheduler turns a Pet's Tasks into a DailyPlan.
 
-    class ClassName {
-        +type attribute
-        +method() returnType
+    class Owner {
+        +str name
+        +List~str~ preferences
+        +List~Pet~ pets
+        +add_pet(pet: Pet) None
+        +remove_pet(pet_id: int) None
     }
 
-    class AnotherClass {
-        +type attribute
-        +method() returnType
+    class Pet {
+        +int id
+        +str name
+        +str species
+        +int age
+        +List~Task~ tasks
+        +add_task(task: Task) None
+        +remove_task(task_id: int) None
     }
 
-    ClassName --> AnotherClass : relationship
+    class Task {
+        +int id
+        +str description
+        +int duration_mins
+        +str priority
+        +datetime due_time
+        +bool is_completed
+        +mark_complete() None
+    }
+
+    class Scheduler {
+        +int available_mins
+        +generate_plan(pet: Pet, available_mins: int) DailyPlan
+    }
+
+    class DailyPlan {
+        +date date
+        +List~Task~ scheduled_tasks
+        +List~Task~ skipped_tasks
+        +str reasoning
+        +explain() str
+    }
+
+    Owner "1" --> "many" Pet : owns
+    Pet "1" --> "many" Task : has
+    Scheduler ..> Pet : reads tasks from
+    Scheduler --> DailyPlan : generates
+    DailyPlan "1" --> "many" Task : schedules
